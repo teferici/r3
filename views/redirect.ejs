@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title><%= post.title %></title>
+
+<meta property="og:title" content="<%= post.title %>">
+<meta property="og:description" content="<%= post.description %>">
+<meta property="og:image" content="<%= fullImage %>">
+<meta property="og:type" content="website">
+<meta property="og:url" content="<%= post.redirect_url %>">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= post.title %>">
+<meta name="twitter:description" content="<%= post.description %>">
+<meta name="twitter:image" content="<%= fullImage %>">
+
+<meta http-equiv="refresh" content="2;url=<%= post.redirect_url %>">
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    padding: 40px;
+}
+img {
+    max-width: 400px;
+    border-radius: 10px;
+}
+</style>
+
+</head>
+<body>
+
+<h1><%= post.title %></h1>
+
+<p><%= post.description %></p>
+
+<img src="<%= fullImage %>">
+
+<p>Redirecting...</p>
+
+<script>
+setTimeout(() => {
+    window.location.href = '<%= post.redirect_url %>';
+}, 2000);
+</script>
+
+</body>
+</html>
