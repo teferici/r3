@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin</title>
+    <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h1>Create Redirect Post</h1>
+
+<form action="/create" method="POST" enctype="multipart/form-data">
+
+    <input type="text" name="slug" placeholder="slug-example" required>
+
+    <input type="text" name="title" placeholder="Title" required>
+
+    <textarea name="description" placeholder="Description"></textarea>
+
+    <input type="url" name="redirect_url" placeholder="https://example.com" required>
+
+    <input type="file" name="image" accept="image/*" required>
+
+    <button type="submit">Create</button>
+
+</form>
+<hr>
+
+<h2>Posts</h2>
+
+<% posts.forEach(post => { %>
+
+<div class="post">
+    <strong><%= post.slug %></strong><br>
+    Redirect: <%= post.redirect_url %><br>
+
+    <a href="/<%= post.slug %>" target="_blank">
+        Open
+    </a>
+</div>
+
+<% }) %>
+
+</div>
+
+</body>
+</html>
