@@ -28,7 +28,7 @@ db.serialize(() => {
     `);
 });
 
-// upload
+// uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
     filename: (req, file, cb) => {
@@ -41,9 +41,11 @@ const upload = multer({ storage });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+//
 // =========================
-// SECRET ADMIN PAGE
+// ADMIN PANEL (SECRET URL)
 // =========================
+//
 app.get('/a8f92k3m-admin', (req, res) => {
 
     db.all('SELECT * FROM posts ORDER BY id DESC', [], (err, rows) => {
@@ -65,7 +67,7 @@ app.get('/a8f92k3m-admin', (req, res) => {
 
                 <input type="file" name="image" required><br><br>
 
-                <button type="submit">Create Post</button>
+                <button type="submit">Create</button>
 
             </form>
 
@@ -85,16 +87,16 @@ app.get('/a8f92k3m-admin', (req, res) => {
     });
 });
 
+//
 // =========================
 // CREATE POST
 // =========================
+//
 app.post('/create', upload.single('image'), (req, res) => {
 
     const { slug, title, description, redirect_url } = req.body;
 
-    const image = req.file
-        ? `/uploads/${req.file.filename}`
-        : '';
+    const image = req.file ? `/uploads/${req.file.filename}` : '';
 
     db.run(
         `INSERT INTO posts (slug, title, description, redirect_url, image)
@@ -106,12 +108,15 @@ app.post('/create', upload.single('image'), (req, res) => {
     );
 });
 
+//
 // =========================
-// PUBLIC REDIRECT PAGE
+// PUBLIC ROUTE (OG + INSTANT REDIRECT)
 // =========================
+//
 app.get('/:slug', (req, res) => {
 
     const slug = req.params.slug;
+    const ua = req.headers['user-agent'] || '';
 
     db.get(
         'SELECT * FROM posts WHERE slug = ?',
@@ -123,41 +128,35 @@ app.get('/:slug', (req, res) => {
             const fullImage =
                 `${req.protocol}://${req.get('host')}${row.image}`;
 
-            res.send(`
-                <html>
-                <head>
+            // detect social bots
+            const isBot =
+                /facebook|twitter|discord|telegram|whatsapp|linkedin|slack|bot|crawler|spider/i.test(ua);
 
-                    <title>${row.title}</title>
+            // SOCIAL MEDIA → ONLY OG HTML
+            if (isBot) {
+                return res.send(`
+                    <html>
+                    <head>
+                        <title>${row.title}</title>
 
-                    <meta property="og:title" content="${row.title}">
-                    <meta property="og:description" content="${row.description}">
-                    <meta property="og:image" content="${fullImage}">
-                    <meta property="og:type" content="website">
+                        <meta property="og:title" content="${row.title}">
+                        <meta property="og:description" content="${row.description}">
+                        <meta property="og:image" content="${fullImage}">
+                        <meta property="og:type" content="website">
 
-                    <meta name="twitter:card" content="summary_large_image">
+                        <meta name="twitter:card" content="summary_large_image">
+                    </head>
+                    <body></body>
+                    </html>
+                `);
+            }
 
-                    <meta http-equiv="refresh" content="1;url=${row.redirect_url}">
-
-                    <style>
-                        body { font-family: Arial; text-align:center; padding:40px; }
-                        img { max-width:400px; border-radius:10px; }
-                    </style>
-
-                </head>
-
-                <body>
-                    <h1>${row.title}</h1>
-                    <p>${row.description}</p>
-                    <img src="${fullImage}">
-                    <p>Redirecting...</p>
-                </body>
-                </html>
-            `);
+            // USERS → INSTANT REDIRECT (NO PAGE)
+            return res.redirect(302, row.redirect_url);
         }
     );
 });
 
-// =========================
 app.listen(PORT, () => {
     console.log("Server running on port " + PORT);
 });
